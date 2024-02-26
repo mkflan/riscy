@@ -6,7 +6,7 @@ rustflags = [
   "-C", "link-arg=-Tmemory.x", 
   "-C", "link-arg=-Tlink.x"
 ]
-runner = "qemu-system-riscv64 -machine virt -cpu rv64 -m 128M -nographic -kernel "
+runner = "qemu-system-riscv64 -machine virt -cpu rv64 -m 128M -kernel "
 
 [unstable]
 build-std = ["core", "alloc"]

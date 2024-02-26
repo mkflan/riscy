@@ -1,15 +1,14 @@
+use crate::uart::UART;
 use core::fmt::{Arguments, Write};
 
 struct Printer;
 
-fn sbi_print(s: &str) {
-    s.chars()
-        .for_each(|c| sbi::legacy::console_putchar(c.try_into().unwrap_or(b'?')));
-}
-
 impl Write for Printer {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        sbi_print(s);
+        for ch in s.bytes() {
+            UART.get().map(|l| l.lock().put(ch)).unwrap()
+        }
+
         Ok(())
     }
 }
@@ -19,11 +18,11 @@ pub fn print_args(args: Arguments) {
     printer.write_fmt(args).unwrap();
 }
 
-pub macro print($($args:tt),+) {
-    $crate::printer::print_args(format_args!($($args),+));
+pub macro print($($args:tt)*) {
+    $crate::printer::print_args(format_args!($($args)*));
 }
 
 pub macro println {
-    ($($args:tt),+) => {$crate::printer::print!($($args),+) },
+    ($($args:tt)*) => { $crate::printer::print!("{}\n", format_args!($($args)*)) },
     () => { $crate::printer::print!("\n") }
 }
