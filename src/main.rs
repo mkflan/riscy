@@ -3,14 +3,19 @@
 #![feature(decl_macro, panic_info_message)]
 #![allow(unused, dead_code)]
 
-use core::{arch::asm, panic::PanicInfo};
+use core::{
+    arch::{asm, global_asm},
+    panic::PanicInfo,
+};
 use printer::println;
 use uart::init_uart;
 
 mod printer;
 mod uart;
 
-#[riscv_rt::entry]
+global_asm!(include_str!("../asm/boot.S"));
+
+#[no_mangle]
 fn kmain() -> ! {
     init_uart();
 

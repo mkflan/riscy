@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-riscv-rt = { version = "0.12.2", features = ["s-mode"] }
+bitflags = "2.4.2"
+riscv = { version = "0.11.1", features = ["s-mode"] }
 sbi = "0.2.0"
 spin = "0.9.8"
