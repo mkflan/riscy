@@ -1,7 +1,10 @@
+use crate::sync::spinlock::Spinlock;
 use core::fmt::{Result, Write};
-use spin::{Mutex, Once};
+use spin::Once;
 
-pub static UART: Once<Mutex<Uart>> = Once::new();
+// The base address of the UART on QEMU's virt machine.
+pub const UART_BASE: usize = 0x1000_0000;
+pub static UART: Once<Spinlock<Uart>> = Once::new();
 
 pub struct Uart {
     base_addr: usize,
@@ -69,7 +72,7 @@ impl Write for Uart {
 
 /// Initialize UART.
 pub fn init_uart() {
-    let mut uart = Uart::new(0x1000_0000);
+    let mut uart = Uart::new(UART_BASE);
     uart.init();
-    UART.call_once(|| Mutex::new(uart));
+    UART.call_once(|| Spinlock::new(uart));
 }
