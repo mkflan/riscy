@@ -7,22 +7,23 @@
 
 use core::{arch::global_asm, panic::PanicInfo};
 use printer::println;
-use riscv_rt::entry;
 use sbi::system_reset::{ResetReason, ResetType};
 use uart::init_uart;
 
 mod arch;
 mod logger;
+mod mem;
 mod printer;
 mod sync;
 mod uart;
+
+global_asm!(include_str!("../boot.s"));
 
 fn shutdown() -> ! {
     let _ = sbi::system_reset::system_reset(ResetType::Shutdown, ResetReason::NoReason);
     unreachable!("System reset failed");
 }
 
-#[entry]
 fn kmain() -> ! {
     init_uart();
     logger::init();

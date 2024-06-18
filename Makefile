@@ -21,6 +21,9 @@ qemu: kernel.elf
 qemudbg: kernel.elf
 	qemu-system-riscv64 $(QEMU_OPTS) -S -s
 
+gdb:
+	riscv64-elf-gdb $(KERNEL_PATH)
+
 lldb: 
 	rust-lldb --arch riscv64 $(KERNEL_PATH)
 	
