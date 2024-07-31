@@ -1,7 +1,4 @@
-.section .boot
-.global _start
+.section .init
+.globl _start
 
 _start:
-        .option push
-        .option norelax
-        

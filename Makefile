@@ -1,8 +1,6 @@
 BUILD_MODE := debug
-override RV64_TOOLCHAIN := riscv64-unknown-elf
-override TARGET := riscv64imac-unknown-none-elf
-override BIN_DIR := target/$(TARGET)/$(BUILD_MODE)
-override KERNEL_PATH := $(BIN_DIR)/riscy
+override RV64_TOOLCHAIN := riscv64-none-elf
+override KERNEL_PATH := target/riscv64imac-unknown-none-elf/$(BUILD_MODE)/riscy
 
 CARGO_ARGS = 
 
@@ -10,24 +8,19 @@ ifeq ($(BUILD_MODE),release)
 	CARGO_ARGS += --$(BUILD_MODE)
 endif
 
-kernel.elf:
-	cargo rustc $(CARGO_ARGS)
-
 QEMU_OPTS = -cpu rv64 -machine virt -m 128M -nographic -serial mon:stdio -kernel $(KERNEL_PATH)
 
-qemu: kernel.elf
-	qemu-system-riscv64 $(QEMU_OPTS)
+qemu:
+	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS)
 
-qemudbg: kernel.elf
-	qemu-system-riscv64 $(QEMU_OPTS) -S -s
-
-gdb:
-	riscv64-elf-gdb $(KERNEL_PATH)
+qemudbg: 
+	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS) -S -s
 
 lldb: 
-	rust-lldb --arch riscv64 $(KERNEL_PATH)
+	rust-lldb --arch riscv64 $(KERNEL_PATH) -o "gdb-remote localhost:1234"
 	
-kernel.disasm: kernel.elf
+kernel.disasm:
+	cargo build $(CARGO_ARGS) 
 	$(RV64_TOOLCHAIN)-objdump -Cd $(KERNEL_PATH) > $@
 
 .PHONY: clean

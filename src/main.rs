@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(decl_macro, panic_info_message)]
+#![feature(decl_macro)]
 #![allow(unused, dead_code)]
 #![warn(clippy::pedantic, clippy::nursery)]
 #![deny(rust_2018_idioms, unsafe_op_in_unsafe_fn)]
@@ -24,10 +24,12 @@ fn shutdown() -> ! {
     unreachable!("System reset failed");
 }
 
+#[no_mangle]
 fn kmain() -> ! {
     init_uart();
     logger::init();
 
+    panic!("OOPS");
     println!("Hello, World");
 
     shutdown()
@@ -35,7 +37,7 @@ fn kmain() -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo<'_>) -> ! {
-    log::error!("{}", info.message().unwrap());
+    log::error!("{}", info.message());
 
     shutdown()
 }

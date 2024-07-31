@@ -2,7 +2,7 @@
 target = "riscv64imac-unknown-none-elf"
 
 [target.riscv64imac-unknown-none-elf]
-rustflags = [
+rustflags = [  
   "-C", "link-arg=-Tkernel.ld",
 ]
 
