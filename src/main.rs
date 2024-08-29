@@ -17,7 +17,7 @@ mod printer;
 mod sync;
 mod uart;
 
-global_asm!(include_str!("../boot.s"));
+global_asm!(include_str!("asm/boot.s"));
 
 fn shutdown() -> ! {
     let _ = sbi::system_reset::system_reset(ResetType::Shutdown, ResetReason::NoReason);
@@ -25,7 +25,7 @@ fn shutdown() -> ! {
 }
 
 #[no_mangle]
-fn kmain() -> ! {
+pub extern "C" fn kmain() -> ! {
     init_uart();
     logger::init();
 

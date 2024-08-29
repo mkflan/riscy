@@ -17,7 +17,11 @@
       rust = rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
     in    
       pkgs.mkShell {
-        nativeBuildInputs = [ rust ];
+        nativeBuildInputs = [ 
+          rust 
+          pkgs.buildPackages.gdb 
+        ];
+        
         depsBuildBuild = [ pkgs.pkgsBuildBuild.qemu ];
 
         env = {

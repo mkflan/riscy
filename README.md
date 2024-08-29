@@ -7,24 +7,24 @@ A simple RISC-V operating system written in Rust.
   - [x] Link kernel into higher half
   - [ ] Write bootstrap assembly code
 - Memory Management
-  - [ ] PMM 
-  - [ ] VMM
-  - [ ] Heap
+  - [ ] Physical Memory Manager 
+  - [ ] Virtual Memory Manager via paging
+  - [ ] Heap Allocator
 - Kernel Sanity
   - [ ] Tests
   - [ ] Debugging
   - [ ] Logger
+- Scheduling
+  - [ ] Basic task scheduler that can handle processes and threads
+  - [ ] Synchronization primitives
 - Drivers
   - [x] UART
-  - [ ] Keyboard
-- Scheduling
-  - [ ] Basic task scheduler
-  - [ ] Program execution in user mode
-  - [ ] SMP
-- Interface
-  - [ ] File System
-  - [ ] System calls
-  - [ ] Shell
+- Userspace
+  - [ ] Loading and executing programs
+  - [ ] System call interface
+  - [ ] Shell interface
 - Other
   - [ ] Interrupt and trap handling
+  - [ ] IPC
+  - [ ] Virtual File System
   - [ ] Move away from Makefile to Rust-based build system

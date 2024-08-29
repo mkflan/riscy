@@ -8,7 +8,7 @@ ifeq ($(BUILD_MODE),release)
 	CARGO_ARGS += --$(BUILD_MODE)
 endif
 
-QEMU_OPTS = -cpu rv64 -machine virt -m 128M -nographic -serial mon:stdio -kernel $(KERNEL_PATH)
+QEMU_OPTS = -cpu rv64 -machine virt -m 128M -kernel $(KERNEL_PATH)
 
 qemu:
 	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS)
@@ -16,8 +16,8 @@ qemu:
 qemudbg: 
 	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS) -S -s
 
-lldb: 
-	rust-lldb --arch riscv64 $(KERNEL_PATH) -o "gdb-remote localhost:1234"
+gdb: 
+	riscv64-none-elf-gdb $(KERNEL_PATH) -ex "target remote localhost:1234"
 	
 kernel.disasm:
 	cargo build $(CARGO_ARGS) 

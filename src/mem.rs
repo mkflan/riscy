@@ -1,2 +1,2 @@
-pub mod kalloc;
+mod addr;
 mod paging;

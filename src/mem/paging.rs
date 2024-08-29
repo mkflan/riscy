@@ -1,4 +1,10 @@
+use crate::arch::r_satp;
 use bitflags::{bitflags, Flags};
+
+/// Return the address of the upper most page table level.
+fn upmost_page_table() -> usize {
+    (r_satp() & 0xFFF) << 12
+}
 
 bitflags! {
     pub struct PTEFlags: usize {
@@ -10,7 +16,6 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
 pub struct PageTableEntry(pub usize);
 
 impl PageTableEntry {
@@ -26,5 +31,5 @@ impl PageTableEntry {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[repr(C, align(4096))]
 pub struct PageTable(pub [PageTableEntry; 512]);
