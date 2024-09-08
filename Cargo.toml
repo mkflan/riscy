@@ -4,8 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bitflags = "2.4.2"
+fdt = "0.1.5"
 log = "0.4.21"
 riscv = { version = "0.11.1", features = ["s-mode"] }
 sbi = "0.2.0"
 spin = "0.9.8"
+
+# [features]
+# default = ["paging.sv39"]
+# paging.sv39 = []
+# paging.sv48 = []
+# paging.sv57 = []

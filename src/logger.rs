@@ -11,10 +11,6 @@ impl Log for KernelLogger {
     }
 
     fn log(&self, record: &Record<'_>) {
-        let file = record.file().unwrap_or("unknown");
-        let file = file.strip_prefix("src/").unwrap_or(file);
-        let line = record.line().unwrap_or_default();
-
         match record.level() {
             Level::Error => print!("\x1b[1;31m[ERROR] "),
             Level::Warn => print!("\x1b[1;33m[WARNING] "),
@@ -23,7 +19,7 @@ impl Log for KernelLogger {
             Level::Trace => print!("\x1b[1;36m[TRACE] "),
         }
 
-        print!("\x1b[1;0m({}:{}) {}\n", file, line, record.args());
+        print!("\x1b[1;0m{}\n", record.args());
     }
 
     fn flush(&self) {}

@@ -1,5 +1,5 @@
 BUILD_MODE := debug
-override RV64_TOOLCHAIN := riscv64-none-elf
+override RV64_TOOLCHAIN := riscv64-elf
 override KERNEL_PATH := target/riscv64imac-unknown-none-elf/$(BUILD_MODE)/riscy
 
 CARGO_ARGS = 
@@ -8,7 +8,7 @@ ifeq ($(BUILD_MODE),release)
 	CARGO_ARGS += --$(BUILD_MODE)
 endif
 
-QEMU_OPTS = -cpu rv64 -machine virt -m 128M -kernel $(KERNEL_PATH)
+QEMU_OPTS = -cpu rv64 -machine virt -m 128M -no-shutdown -serial mon:stdio -kernel $(KERNEL_PATH)
 
 qemu:
 	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS)
@@ -17,7 +17,7 @@ qemudbg:
 	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS) -S -s
 
 gdb: 
-	riscv64-none-elf-gdb $(KERNEL_PATH) -ex "target remote localhost:1234"
+	gdb-multiarch $(KERNEL_PATH) -ex "target remote localhost:1234" -ex "set architecture riscv:rv64"
 	
 kernel.disasm:
 	cargo build $(CARGO_ARGS) 
