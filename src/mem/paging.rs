@@ -89,19 +89,27 @@ impl PageTable {
     }
 }
 
+#[repr(transparent)]
 #[derive(Debug, Clone, Copy)]
-pub struct PageFrame {
-    base_addr: PhysAddr,
-}
+pub struct PageFrame(PhysAddr);
 
 impl PageFrame {
-    pub fn new(addr: u64) -> Self {
-        Self {
-            base_addr: PhysAddr::new(addr),
-        }
+    /// Create a new page frame, given its base address.
+    ///
+    /// # Panics
+    /// This function panics if it is given a physical address that is not page-aligned.
+    #[track_caller]
+    pub fn new(base_addr: u64) -> Self {
+        assert_eq!(
+            base_addr % 4096,
+            0,
+            "attempted to create page frame with unaligned physical address"
+        );
+
+        Self(PhysAddr::new(base_addr))
     }
 
-    pub fn base_addr(self) -> PhysAddr {
-        self.base_addr
+    pub const fn base_addr(self) -> PhysAddr {
+        self.0
     }
 }

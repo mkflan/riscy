@@ -16,8 +16,8 @@ mod sync;
 mod uart;
 
 use core::{arch::global_asm, panic::PanicInfo};
-use fdt::Fdt;
 use mem::{
+    paging::PageTable,
     pmm::{BitmapPMM, PageFrameAllocator, PHYSICAL_MEMORY_MANAGER},
     KERNEL_END, KERNEL_START, MEM_END,
 };
@@ -37,10 +37,8 @@ pub extern "C" fn kmain(hart_id: usize, fdt: *const u8) -> ! {
     init_uart();
     logger::init();
 
-    let fdt = match unsafe { Fdt::from_ptr(fdt) } {
-        Ok(fdt) => fdt,
-        Err(_) => panic!("unable to get fdt"),
-    };
+    log::info!("SYSTEM INFO");
+    log::info!("  boot hart id: {hart_id}");
 
     let mem_start = unsafe { core::ptr::addr_of_mut!(KERNEL_END) };
     let mem_end = MEM_END as *mut u8;
@@ -51,12 +49,12 @@ pub extern "C" fn kmain(hart_id: usize, fdt: *const u8) -> ! {
     }
 
     let frame = unsafe { pmm.alloc_frame().unwrap() };
-    println!("{:#X}", (&frame).base_addr());
-    // assert!(pmm.is_frame_used(frame));
-    // unsafe { pmm.dealloc_frame(frame) };
-    // assert!(!pmm.is_frame_used(frame));
 
-    log::info!("booting on hart {hart_id}");
+    // TODO: Setup page table mappings
+    // - identity mapping for UART
+    // - identity mapping for kernel
+    // - higher half mapping for stack
+    let mut root_pt = PageTable::new();
 
     shutdown()
 }
