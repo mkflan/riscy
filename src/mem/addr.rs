@@ -1,32 +1,61 @@
-use super::paging::VPN_CNT;
-use core::fmt::{self, UpperHex};
+use super::paging::{HIGHEST_PPN_LEN, PN_CNT};
+use core::{
+    fmt::{self, UpperHex},
+    ops::{Add, AddAssign},
+};
 
-/// A valid RV64 physical address.
-///
-/// Physical addresses in RV64 only use 55 bits. Thus, this type will ensure the remaining bits are set to zero.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PhysAddr(u64);
+pub struct PhysAddr(usize);
 
 impl PhysAddr {
-    /// Create a new physical address, with all bits after bit 55 set to 0.
-    pub const fn new(addr: u64) -> Self {
-        Self(addr % (1 << 55))
+    pub const fn new(addr: usize) -> Self {
+        Self(addr)
     }
 
-    /// Return the physical address as a u64.
-    pub const fn addr(self) -> u64 {
+    /// Return the inner physical address.
+    pub const fn addr(self) -> usize {
         self.0
     }
 
-    /// Check if the physical address is null.
-    pub const fn is_null(self) -> bool {
-        self.0 == 0
+    pub fn from_ptr(ptr: *mut u8) -> Self {
+        Self(ptr as usize)
     }
 
-    /// Return the PPN of this physical address.
-    pub const fn ppn(self) -> u64 {
+    pub const fn as_mut_ptr(self) -> *mut u8 {
+        self.0 as *mut u8
+    }
+
+    /// Return the full PPN of this physical address.
+    pub fn ppn(self) -> usize {
         self.0 >> 12
+    }
+
+    /// Return all the PPNs of this physical address.
+    pub fn ppns(self) -> [usize; PN_CNT] {
+        core::array::from_fn(|idx| {
+            let ppn = self.0 >> (12 + 9 * idx);
+
+            if idx == PN_CNT - 1 {
+                ppn & HIGHEST_PPN_LEN
+            } else {
+                ppn & 0x1FF
+            }
+        })
+    }
+}
+
+impl Add<usize> for PhysAddr {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Self::new(self.addr() + rhs)
+    }
+}
+
+impl AddAssign<usize> for PhysAddr {
+    fn add_assign(&mut self, rhs: usize) {
+        self.0 += rhs;
     }
 }
 
@@ -38,39 +67,53 @@ impl UpperHex for PhysAddr {
 
 /// A valid RV64 virtual address.
 ///
-/// Based on the paging mode being used, a different amount of lower bits contribute to the virtual address while the remaining
-/// higher order bits become copies of the highest bit that contributes to the virtual address. This type will ensure these
-/// invariants are upheld to prevent unwanted page faults.
+/// Bits 39-63 of the virtual address must be equal to bit 38 to prevent a page fault.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct VirtAddr(u64);
+pub struct VirtAddr(usize);
 
 impl VirtAddr {
-    /// Create a new virtual address, with proper sign extension.
-    pub const fn new(addr: u64) -> Self {
-        Self(((addr << 24) as i64 >> 24) as u64)
+    /// Create a valid virtual address.
+    pub const fn new(mut addr: usize) -> Self {
+        // let top_bit_mask = 1 << (12 + PN_CNT * 9 - 1);
+        // let top_bit = addr & top_bit_mask;
+
+        // match top_bit {
+        //     0 => addr &= !(usize::MAX << (12 + PN_CNT * 9 - 1)),
+        //     1 => addr |= (usize::MAX << (12 + PN_CNT * 9 - 1)),
+        //     _ => unreachable!(),
+        // }
+
+        Self(addr)
     }
 
-    /// Return the virtual address as a u64.
-    pub const fn addr(self) -> u64 {
+    /// Return the inner virtual address.
+    pub const fn addr(self) -> usize {
         self.0
     }
 
-    /// Check if the virtual address is null.
-    pub const fn is_null(self) -> bool {
-        self.0 == 0
-    }
-
     /// Return the page offset of this virtual address.
-    pub const fn offset(self) -> u64 {
+    pub const fn offset(self) -> usize {
         self.0 & 0xFFF
     }
 
-    /// Return the desired virtual page number.
-    pub fn vpn(self, idx: u8) -> usize {
-        assert!(idx >= 0 && idx < VPN_CNT as u8);
+    /// Return all the VPNs of this virtual address.
+    pub fn vpns(self) -> [usize; PN_CNT] {
+        core::array::from_fn(|idx| (self.0 >> (12 + 9 * idx)) & 0x1FF)
+    }
+}
 
-        ((self.0 >> (12 + 9 * idx)) & 0x1FF) as usize
+impl Add<usize> for VirtAddr {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Self::new(self.addr() + rhs)
+    }
+}
+
+impl AddAssign<usize> for VirtAddr {
+    fn add_assign(&mut self, rhs: usize) {
+        self.0 += rhs;
     }
 }
 

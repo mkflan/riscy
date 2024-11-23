@@ -55,7 +55,7 @@ impl PageFrameAllocator for BitmapPMM {
 
         // Mark the pages used by the bitmap as used.
         for page in 0..(self.size / 4096 + 1) {
-            let frame = PageFrame::new((self.avail_mem_start + 4096 * page) as u64);
+            let frame = PageFrame::new((self.avail_mem_start + 4096 * page));
             self.mark_frame(frame, true);
         }
     }
@@ -83,7 +83,7 @@ impl PageFrameAllocator for BitmapPMM {
 
             // Ensure the physical address is a valid address to prevent allocating an unusable frame.
             if pa <= self.avail_mem_end {
-                let frame = PageFrame::new(pa as u64);
+                let frame = PageFrame::new(pa);
                 self.mark_frame(frame, true);
                 return Some(frame);
             }

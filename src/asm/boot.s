@@ -2,6 +2,8 @@
 .globl _start
 
 _start:
+        csrw sie, zero
+        
         .option push
         .option norelax
                 la gp, __global_pointer$
@@ -18,6 +20,7 @@ _start:
 
         post_clear_bss:
 
-        lla sp, _stack_top
+        csrw satp, zero
+        lla sp, _stack_end
 
         j kmain

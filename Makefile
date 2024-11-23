@@ -8,7 +8,7 @@ ifeq ($(BUILD_MODE),release)
 	CARGO_ARGS += --$(BUILD_MODE)
 endif
 
-QEMU_OPTS = -cpu rv64 -machine virt -m 128M -no-shutdown -serial mon:stdio -kernel $(KERNEL_PATH)
+QEMU_OPTS = -cpu rv64 -machine virt -m 128M -no-shutdown -kernel $(KERNEL_PATH)
 
 qemu:
 	cargo run $(CARGO_ARGS) -- $(QEMU_OPTS)

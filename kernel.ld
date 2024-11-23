@@ -2,7 +2,6 @@ OUTPUT_ARCH(riscv64imac)
 ENTRY(_start)
 
 KERNEL_START = 0x80200000;
-STACK_SIZE = 4K;
 
 SECTIONS
 {
@@ -10,8 +9,11 @@ SECTIONS
 
 	. = ALIGN(4K);
 	.text : {
+		PROVIDE(_text_start = .);
 		*(.init)
 		*(.text .text.*)
+		. = ALIGN(4K);
+		PROVIDE(_text_end = .);
 	}
 
 	. = ALIGN(4K);
@@ -20,6 +22,7 @@ SECTIONS
 		*(.rodata .rodata.*)
 	}
 
+	. = ALIGN(4K);
 	.data : {
 		*(.sdata .sdata.*) *(.data .data.*)
 		. = ALIGN(8);
@@ -36,14 +39,7 @@ SECTIONS
 	}
 
 	. = ALIGN(4K);
-	.stack (NOLOAD) : {
-		PROVIDE(_stack_bottom = .);
-		. = ALIGN(4K);
-		. += STACK_SIZE;
-		. = ALIGN(4K);
-		PROVIDE(_stack_top = .);
-	}
-
-	. = ALIGN(4K);
-	PROVIDE(KERNEL_END = .);
+	PROVIDE(_stack_start = _bss_end);
+	PROVIDE(_stack_end = _stack_start + 0x1000);
+	PROVIDE(KERNEL_END = _stack_end);
 }

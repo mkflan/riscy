@@ -4,14 +4,14 @@ use spin::Once;
 
 // The base address of the UART on QEMU's virt machine.
 pub const UART_BASE: usize = 0x1000_0000;
-pub static UART: Once<Spinlock<Uart>> = Once::new();
+pub static UART: Spinlock<Uart> = Spinlock::new(Uart::new(UART_BASE));
 
 pub struct Uart {
     base_addr: usize,
 }
 
 impl Uart {
-    fn new(base_addr: usize) -> Self {
+    const fn new(base_addr: usize) -> Self {
         Self { base_addr }
     }
 
@@ -20,17 +20,14 @@ impl Uart {
         let base_ptr = self.base_addr as *mut u8;
 
         unsafe {
-            // Set the first two bits of the Line Control Register (LCR), which set the word length.
-            // This register is at offset 3 from the base address.
-            base_ptr.add(3).write_volatile(0b11);
+            // Set the Interrupt Enable Register to enable receiver buffer interrupts.
+            base_ptr.add(1).write_volatile(0b1);
 
-            // Set the first bit of the FIFO Control Register (FCR), which enables FIFO.
-            // This register is at offset 2 from the base address.
+            // Enable FIFO within the FIFO Control Register.
             base_ptr.add(2).write_volatile(0b1);
 
-            // Set the first bit of the Interrupt Enable Register (IER), which enables interrupts.
-            // This register is at offset 1 from the base address.
-            base_ptr.add(1).write_volatile(0b1);
+            // Set the Line Control Register to specify an 8-byte word length.
+            base_ptr.add(3).write_volatile(0b11);
         }
     }
 
@@ -56,6 +53,13 @@ impl Uart {
     /// Put a character to the UART.
     pub fn put(&mut self, ch: u8) {
         let base_ptr = self.base_addr as *mut u8;
+
+        loop {
+            if unsafe { base_ptr.add(5).read_volatile() } & (1 << 5) != 0 {
+                break;
+            }
+        }
+
         unsafe { base_ptr.add(0).write_volatile(ch) }
     }
 }
@@ -72,7 +76,5 @@ impl Write for Uart {
 
 /// Initialize UART.
 pub fn init_uart() {
-    let mut uart = Uart::new(UART_BASE);
-    uart.init();
-    UART.call_once(|| Spinlock::new(uart));
+    UART.acquire().init();
 }
